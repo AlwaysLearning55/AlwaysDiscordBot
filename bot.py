@@ -69,12 +69,12 @@ async def unban(ctx, *, member):
 
 @client.command()
 @commands.has_permissions(manage_messages = True)
-async def clear(ctx, amount = 3):
+async def clear(ctx, amount = 2):
     # Clears "amount" messages from the chat. Default is "command + 2" messages.
     #   --> If possible, create a way to avoid deleting more than x messages without confirmation;
     #       No deleting messages older than "x" days. (default might be anytime);
     #       Delete all messages from a specific user or from a specific user since "x" days ago;
-    await ctx.channel.purge(limit=amount)
+    await ctx.channel.purge(limit=(amount + 1))
 
     # Join and leave channel
 @client.command()
