@@ -6,11 +6,17 @@ from discord.ext import commands
 
 client = commands.Bot(command_prefix = '.')
 
+# Initializing bot's extensions
+for filename in os.listdir('./cogs'):
+if filename.endswith('.py'):
+    client.load_extension(f'cogs.{filename[:-3]}')
 
+# Bot is ready event!
 @client.event
 async def on_ready():
     print("Bot is Online!")
 
+# If an error occurs, send that error as a discord message on the user active channel
 @client.event
 async def on_command_error(ctx, error):
     await ctx.send(f'Erro: {error}')
@@ -31,9 +37,12 @@ async def ban(ctx, member : discord.Member, *, reason = None):
 
 @client.command()
 async def unban(ctx, *, member):
+    # Get banned list from server and split member name and discriminator ('Name' # '1234')
     banned_users = await ctx.guild.bans()
     member_name, member_discriminator = member.split('#')
 
+    # Scans trough banned lsits and check each one of them if they match with member.
+    #   If they do, unban.
     for ban_entry in banned_users:
         user = ban_entry.user
 
@@ -48,8 +57,13 @@ async def rickroll(ctx):
 
 @client.command()
 async def clear(ctx, amount = 3):
+    # Clears "amount" messages from the chat. Default is "command + 2" messages.
+    #   --> If possible, create a way to avoid deleting more than x messages without confirmation;
+    #       No deleting messages older than "x" days. (default might be anytime);
+    #       Delete all messages from a specific user or from a specific user since "x" days ago;
     await ctx.channel.purge(limit=amount)
 
+    # Join and leave channel
 @client.command()
 async def join(ctx):
     channel = ctx.author.voice.channel
@@ -59,6 +73,7 @@ async def join(ctx):
 async def leave(ctx):
     await ctx.voice_client.disconnect()
 
+    # Load, unload and reload (all or one) extensions
 @client.command()
 async def load(ctx, extension):
     client.load_extension(f'cogs.{extension}')
@@ -83,11 +98,9 @@ async def reloadall(ctx):
             client.load_extension(f'cogs.{filename[:-3]}')
     await ctx.send(f'Reloaded extensions!')
 
-
-for filename in os.listdir('./cogs'):
-    if filename.endswith('.py'):
-        client.load_extension(f'cogs.{filename[:-3]}')
-
+    # Rickrolled command.
+    #   --> Should join channel and play URL music for 18 seconds
+    #       Need work!
 
 @client.command()
 async def rick(ctx):
@@ -99,6 +112,8 @@ async def rick(ctx):
     if voice_channel == None:
         await ctx.send(f"Usuário não está em um canal!")
 
+    # 8ball. You ask a question and it shall reply. Portuguese version.
+    #   (mixed responses, positive or negative questions not balanced)
 @client.command(aliases = ['8ball', 'pergunta', '?'])
 async def _8ball(ctx, *, question):
     responses = ['Até onde eu vi, sim.',
@@ -123,9 +138,9 @@ async def _8ball(ctx, *, question):
                  'Dá pra confiar que sim.']
     await ctx.send(f'Question: {question}\nAnswer: {random.choice(responses)}')
 
+    # Open token file, read it and use it to run the client. Stored outside code for safekeeping.
 fileOpen = os.open("C:\\Users\\AlwaysLWIN\\Documents\\AlwaysDiscordBOT\\Token.txt", os.O_RDONLY)
 token = os.read(fileOpen, 59)
 os.close(fileOpen)
 tokenNew = str(token).split('\'')[1]
-print(tokenNew)
 client.run(f'{tokenNew}')

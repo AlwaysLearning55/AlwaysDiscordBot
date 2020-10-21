@@ -1,6 +1,8 @@
 import discord
 from discord.ext import commands
 
+    # Example of Cog. Just a vanilla cog without real purpose.
+
 class Example(commands.Cog):
 
     def __init__(self, client):
