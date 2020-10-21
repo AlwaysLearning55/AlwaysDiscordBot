@@ -2,9 +2,14 @@ import discord
 import random
 import os
 
-from discord.ext import commands
+from discord.ext import commands, tasks
+from itertools import cycle
 
 client = commands.Bot(command_prefix = '.')
+
+# Status cycle set
+status = cycle(['Anything you want!',
+                'Random status number #2'])
 
 # Initializing bot's extensions
 for filename in os.listdir('./cogs'):
@@ -14,28 +19,39 @@ for filename in os.listdir('./cogs'):
 # Bot is ready event!
 @client.event
 async def on_ready():
+    await client.change_presence(activity = discord.Game('Starting bot up!'))
+    status_update.start()
     print("Bot is Online!")
 
 # If an error occurs, send that error as a discord message on the user active channel
 @client.event
 async def on_command_error(ctx, error):
-    await ctx.send(f'Erro: {error}')
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send('Please use required arguments.')
+    if isinstance(error, commands.MissingPermissions):
+        await ctx.send('User lacks permission to use that command.')
+    else:
+        await ctx.send(f'Erro: {error}')
+
+# Update status every x seconds
+@tasks.loop(seconds = 60)
+async def status_update():
+    await client.change_presence(activity = discord.Game(next(status)))
 
 @client.command()
-async def ping(ctx):
-    await ctx.send(f"Pong! {round(client.latency * 1000)}ms")
-
-@client.command()
+@commands.has_permissions(administrator = True, manage_messages = True, manage_roles = True)
 async def kick(ctx, member : discord.Member, *, reason = None):
     await member.kick(reason = reason)
     await ctx.send(f"Kickando {user.mention}!")
 
 @client.command()
+@commands.has_permissions(administrator = True, manage_messages = True, manage_roles = True)
 async def ban(ctx, member : discord.Member, *, reason = None):
     await member.ban(reason = reason)
     await ctx.send(f"Banindo {user.mention}!")
 
 @client.command()
+@commands.has_permissions(administrator = True, manage_messages = True, manage_roles = True)
 async def unban(ctx, *, member):
     # Get banned list from server and split member name and discriminator ('Name' # '1234')
     banned_users = await ctx.guild.bans()
@@ -52,6 +68,7 @@ async def unban(ctx, *, member):
             return
 
 @client.command()
+@commands.has_permissions(manage_messages = True)
 async def clear(ctx, amount = 3):
     # Clears "amount" messages from the chat. Default is "command + 2" messages.
     #   --> If possible, create a way to avoid deleting more than x messages without confirmation;
@@ -93,46 +110,6 @@ async def reloadall(ctx):
             client.unload_extension(f'cogs.{filename[:-3]}')
             client.load_extension(f'cogs.{filename[:-3]}')
     await ctx.send(f'Reloaded extensions!')
-
-    # Rickrolled command.
-    #   --> Should join channel and play URL music for 18 seconds
-    #       Need work!
-
-@client.command()
-async def rick(ctx):
-    url = ("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
-    print(url)
-    server = ctx.message.guild
-    voice_channel = server.voice_client
-
-    if voice_channel == None:
-        await ctx.send(f"Usuário não está em um canal!")
-
-    # 8ball. You ask a question and it shall reply. Portuguese version.
-    #   (mixed responses, positive or negative questions not balanced)
-@client.command(aliases = ['8ball', 'pergunta', '?'])
-async def _8ball(ctx, *, question):
-    responses = ['Até onde eu vi, sim.',
-                 'Pergunta depois.',
-                 'Vo vê e te conto.',
-                 'Tá dificil prever isso.',
-                 'Se concentra e pergunta de novo.',
-                 'Se eu fosse você, não esperaria por isso.',
-                 'Mais certo do que 2 + 2 = 4.',
-                 'Difinitivamente, sim.',
-                 'Mais errado que 2 + 2 = 5.',
-                 'Definitivamente, não.',
-                 'Olha... Não.',
-                 'Nem fodendo.',
-                 'Fodendo sim.',
-                 'Cê quem sabe.',
-                 'Até onde eu vejo, acho que sim.',
-                 'Mais duvidoso do que produto do paraguai na 25 de março.',
-                 'Sem sombra de dúvidas.',
-                 'Sim.',
-                 'Não.',
-                 'Dá pra confiar que sim.']
-    await ctx.send(f'Question: {question}\nAnswer: {random.choice(responses)}')
 
     # Open token file, read it and use it to run the client. Stored outside code for safekeeping.
 fileOpen = os.open("C:\\Users\\AlwaysLWIN\\Documents\\AlwaysDiscordBOT\\Token.txt", os.O_RDONLY)
