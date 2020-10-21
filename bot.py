@@ -123,6 +123,9 @@ async def _8ball(ctx, *, question):
                  'Dá pra confiar que sim.']
     await ctx.send(f'Question: {question}\nAnswer: {random.choice(responses)}')
 
-
-
-client.run('NzY4MTEzMjkyMDg1ODIxNDUy.X47vPw.Qs3zrFxuE6J4GZs0QAeKa1Vr9tQ')
+fileOpen = os.open("C:\\Users\\AlwaysLWIN\\Documents\\AlwaysDiscordBOT\\Token.txt", os.O_RDONLY)
+token = os.read(fileOpen, 59)
+os.close(fileOpen)
+tokenNew = str(token).split('\'')[1]
+print(tokenNew)
+client.run(f'{tokenNew}')
