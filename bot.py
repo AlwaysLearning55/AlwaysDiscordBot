@@ -52,10 +52,6 @@ async def unban(ctx, *, member):
             return
 
 @client.command()
-async def rickroll(ctx):
-    await ctx.send("Você foi rickrollado!")
-
-@client.command()
 async def clear(ctx, amount = 3):
     # Clears "amount" messages from the chat. Default is "command + 2" messages.
     #   --> If possible, create a way to avoid deleting more than x messages without confirmation;
