@@ -1,5 +1,6 @@
 import discord
 import random
+import asyncio
 import os
 
 from discord.ext import commands, tasks
@@ -71,10 +72,29 @@ async def unban(ctx, *, member):
 @commands.has_permissions(manage_messages = True)
 async def clear(ctx, amount = 2):
     # Clears "amount" messages from the chat. Default is "command + 2" messages.
-    #   --> If possible, create a way to avoid deleting more than x messages without confirmation;
-    #       No deleting messages older than "x" days. (default might be anytime);
+    #   --> No deleting messages older than "x" days. (default might be anytime);
     #       Delete all messages from a specific user or from a specific user since "x" days ago;
-    await ctx.channel.purge(limit=(amount + 1))
+
+    if (amount >= 10):
+        await ctx.send(f"Are you sure? (Y)")
+
+        def checkClear(response):
+            if response.content == "Y":
+                return True
+        try:
+            await client.wait_for('message', timeout=15.0, check=checkClear)
+        except asyncio.TimeoutError:
+            await ctx.send("Clear failed. No response given.")
+        else:
+            await ctx.channel.purge(limit=(amount + 1))
+            await ctx.channel.send(f'Cleared {amount} messages. 👍')
+    else:
+        await ctx.channel.purge(limit=(amount + 1))
+        await ctx.channel.send(f'Cleared {amount} messages. 👍')
+
+#    await ctx.channel.purge(limit=(amount + 1))
+
+
 
     # Join and leave channel
 @client.command()
