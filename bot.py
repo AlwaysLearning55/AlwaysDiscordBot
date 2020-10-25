@@ -34,24 +34,41 @@ async def on_command_error(ctx, error):
     else:
         await ctx.send(f'Erro: {error}')
 
+"""
+Issue #5
+Attempt on checking message.
+
+Error: When user sends message, it checks if its a bot >p or !p command, but when user sends
+any other "." command, it does not execute. Example: .help does not produce help message; .clear does not clear messages
+
+@client.event
+async def on_message(message):
+    if message.content.startswith(">p") or message.content.startswith("!p"):
+        if "bot" in str(message.channel):
+            return
+        else:
+            await message.delete(delay = 3)
+            await message.channel.send(f"Channel is not bot channel! {message.author.mention}")
+"""
+
 # Update status every x seconds
 @tasks.loop(seconds = 60)
 async def status_update():
     await client.change_presence(activity = discord.Game(next(status)))
 
-@client.command()
+@client.command(brief='Kick a specific member.', description='This command will kick a specific member. Use: .kick @member')
 @commands.has_permissions(administrator = True, manage_messages = True, manage_roles = True)
 async def kick(ctx, member : discord.Member, *, reason = None):
     await member.kick(reason = reason)
     await ctx.send(f"Kickando {user.mention}!")
 
-@client.command()
+@client.command(brief='Ban a specific member', description='This command will ban a specific member. Use: .ban @member (reason *optional*)')
 @commands.has_permissions(administrator = True, manage_messages = True, manage_roles = True)
 async def ban(ctx, member : discord.Member, *, reason = None):
     await member.ban(reason = reason)
     await ctx.send(f"Banindo {user.mention}!")
 
-@client.command()
+@client.command(brief='Unban a specific member', description='This command will unban a specific member. Use: .unban username#1234 (Might not work if you @username. Must use username + handle.)')
 @commands.has_permissions(administrator = True, manage_messages = True, manage_roles = True)
 async def unban(ctx, *, member):
     # Get banned list from server and split member name and discriminator ('Name' # '1234')
@@ -68,12 +85,16 @@ async def unban(ctx, *, member):
             await ctx.send(f"Desbanindo {user.mention}!")
             return
 
-@client.command()
+@client.command(brief='Clear x messages from chat', description='This command will clear x messages from chat. Use: .clear (number of messages *default clear = 2*)')
 @commands.has_permissions(manage_messages = True)
 async def clear(ctx, amount = 2):
     # Clears "amount" messages from the chat. Default is "command + 2" messages.
     #   --> No deleting messages older than "x" days. (default might be anytime);
     #       Delete all messages from a specific user or from a specific user since "x" days ago;
+
+    async def DeleteALL(amount):
+        await ctx.channel.purge(limit=(amount + 1))
+        await ctx.channel.send(f'Cleared {amount} messages. 👍')
 
     if (amount >= 10):
         await ctx.send(f"Are you sure? (Y)")
@@ -82,48 +103,57 @@ async def clear(ctx, amount = 2):
             if response.content == "Y":
                 return True
         try:
-            await client.wait_for('message', timeout=15.0, check=checkClear)
+            await client.wait_for('message', timeout=10.0, check=checkClear)
         except asyncio.TimeoutError:
             await ctx.send("Clear failed. No response given.")
         else:
-            await ctx.channel.purge(limit=(amount + 1))
-            await ctx.channel.send(f'Cleared {amount} messages. 👍')
+            await DeleteALL(amount)
     else:
-        await ctx.channel.purge(limit=(amount + 1))
-        await ctx.channel.send(f'Cleared {amount} messages. 👍')
+        await DeleteALL(amount)
 
-#    await ctx.channel.purge(limit=(amount + 1))
 
+#Test command.
+"""
+
+@client.command(brief='This is a test command. Dont use it.', description='Do not use this command. Might clear the server.')
+@commands.has_permissions(manage_messages = True)
+async def testclear(ctx, message):
+    if "bot" in str(ctx.channel):
+        return
+    else:
+        await message.delete(delay = 3)
+        await ctx.channel.send(f"Channel is not bot channel!")
+"""
 
 
     # Join and leave channel
-@client.command()
+@client.command(brief='Joins voice chat', description='Bot will join the voice chat of whoever sent the message.')
 async def join(ctx):
     channel = ctx.author.voice.channel
     await channel.connect()
 
-@client.command()
+@client.command(brief='Leave voice chat', description='Bot will leave the voice chat.')
 async def leave(ctx):
     await ctx.voice_client.disconnect()
 
     # Load, unload and reload (all or one) extensions
-@client.command()
+@client.command(brief='Load a specific extension', description='Bot will load a specific extension. Use: .load (name of the extension)')
 async def load(ctx, extension):
     client.load_extension(f'cogs.{extension}')
     await ctx.send(f'Loaded extension [{extension}]!')
 
-@client.command()
+@client.command(brief='Unload a specific extension', description='Bot will unload a specific extension. Use: .unload (name of the extension)')
 async def unload(ctx, extension):
     client.unload_extension(f'cogs.{extension}')
     await ctx.send(f'Unloaded extension [{extension}]!')
 
-@client.command()
+@client.command(brief='Reload a specific extension', description='Bot will reload a specific extension. Use: .reload (name of the extension)')
 async def reload(ctx, extension):
     client.unload_extension(f'cogs.{extension}')
     client.load_extension(f'cogs.{extension}')
     await ctx.send(f'Reloaded extension [{extension}]!')
 
-@client.command()
+@client.command(brief='Bot will reload all extensions', description='Bot will reload all extensions. Use: .reloadall')
 async def reloadall(ctx):
     for filename in os.listdir('./cogs'):
         if filename.endswith('.py'):
