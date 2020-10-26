@@ -29,7 +29,7 @@ async def on_ready():
 async def on_command_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
         await ctx.send('Please use required arguments.')
-    if isinstance(error, commands.MissingPermissions):
+    elif isinstance(error, commands.MissingPermissions):
         await ctx.send('User lacks permission to use that command.')
     else:
         await ctx.send(f'Erro: {error}')
