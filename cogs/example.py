@@ -13,7 +13,7 @@ class Example(commands.Cog):
     async def on_ready(self):
         print('Exemple.py loaded!')
 
-    @commands.command()
+    @commands.command(brief='Ping the server.', description='This command will ping the server and return the ms.')
     async def ping(self, ctx):
         await ctx.send(f"Pong! {round(self.client.latency * 1000)}ms")
 
@@ -21,7 +21,7 @@ class Example(commands.Cog):
         #   --> Should join channel and play URL music for 18 seconds
         #       Need work!
 
-    @commands.command()
+    @commands.command(brief='On development.', description='On development')
     async def rick(self, ctx):
         url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
         server = ctx.message.guild
@@ -33,7 +33,7 @@ class Example(commands.Cog):
         # 8ball. You ask a question and it shall reply. Portuguese version.
         #   (mixed responses, positive or negative questions not balanced)
 
-    @commands.command(aliases = ['8ball', 'pergunta', '?'])
+    @commands.command(aliases = ['8ball', 'pergunta', '?'], brief='Ask a question.', description='Ask a question and the bot will answer. Use: .? (Question)')
     async def _8ball(self, ctx, *, question):
         responses = ['Até onde eu vi, sim.',
                      'Pergunta depois.',
